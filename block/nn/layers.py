@@ -128,8 +128,11 @@ class SecondOrderPolyNeuron(BaseNeurons):
 
         self.fc1 = nn.Linear(n_in, n_out)
         self.fc2 = nn.Linear(n_in, n_out)
-        self.init_weight(self._to_current.weight, "uniform", a=-np.sqrt(1 / n_in), b=np.sqrt(1 / n_in))
-        self.init_weight(self._to_current.bias, "constant", c=0)
+        self.init_weight(self.fc1.weight, "uniform", a=-np.sqrt(1 / n_in), b=np.sqrt(1 / n_in))
+        self.init_weight(self.fc1.bias, "constant", c=0)
+        self.init_weight(self.fc2.weight, "uniform", a=-np.sqrt(1 / n_in), b=np.sqrt(1 / n_in))
+        self.init_weight(self.fc2.bias, "constant", c=0)
+
 
     @property
     def hyperparams(self):
@@ -140,29 +143,9 @@ class SecondOrderPolyNeuron(BaseNeurons):
 
     def forward(self, x):
 
-#         # Initialize hidden states at t=0
-#         mem1 = self.lif1.init_leaky()
-#         mem2 = self.lif2.init_leaky()
-
-#         # Record the final layer
-#         spk2_rec = []
-#         mem2_rec = []
         x = x.permute(0, 2, 1)
-        current = self.fc2(x) * self.fc1(x)
-#         spk1, mem1 = self.lif1(cur1_post, mem1)
-#         cur2 = self.fc3(spk1)
-#         spk2, mem2 = self.lif2(cur2, mem2)
-        #cur2_pre = self.fc3(spk1)
-        #cur2_post = (self.fc4(spk1) + 1) * cur2_pre
-        #spk2, mem2 = self.lif2(cur2_post, mem2)
-#         spk2_rec.append(spk2)
-#         mem2_rec.append(mem2)
-
-#         x = x.permute(0, 2, 1)
-#         current = self._to_current(x)
-#         # 
+        current = (self.fc2(x)+1) * self.fc1(x)
         current = current.permute(0, 2, 1)
         spikes = super().forward(current, v_init, return_type)
 
         return spikes
-#         return torch.stack(spk2_rec, dim=0), torch.stack(mem2_rec, dim=0)
