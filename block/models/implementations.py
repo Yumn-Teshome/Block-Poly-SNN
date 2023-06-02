@@ -1,7 +1,7 @@
 import numpy as np
 from brainbox.models import BBModel
 
-from block.models.builder import LinearModel, ConvModel, VGG11Model
+from block.models.builder import LinearModel, PolyModel, ConvModel, VGG11Model
 
 
 class BaseModel(BBModel):
@@ -96,6 +96,16 @@ class SHDModel(BaseModel):
     def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=False, single_spike=True):
         super().__init__(method, t_len, heterogeneous_beta, beta_requires_grad, readout_max, single_spike)
         self._model = LinearModel(method, t_len, n_in=700, n_out=20, n_hidden=300, n_layers=1, hidden_beta=np.exp(-1/10), readout_beta=np.exp(-1/20), heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, readout_max=readout_max, single_spike=single_spike)
+
+    def forward(self, spikes, return_all=False):
+        return self._model(spikes, return_all)
+
+#Yumn's edits: PolySHDModel
+class PolySHDModel(BaseModel):
+    
+    def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=False, single_spike=True):
+        super().__init__(method, t_len, heterogeneous_beta, beta_requires_grad, readout_max, single_spike)
+        self._model = PolyModel(method, t_len, n_in=700, n_out=20, n_hidden=300, n_layers=1, hidden_beta=np.exp(-1/10), readout_beta=np.exp(-1/20), heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, readout_max=readout_max, single_spike=single_spike)
 
     def forward(self, spikes, return_all=False):
         return self._model(spikes, return_all)
