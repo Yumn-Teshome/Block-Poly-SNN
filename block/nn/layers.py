@@ -75,6 +75,7 @@ class LinearNeurons(BaseNeurons):
     def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
         x = x.permute(0, 2, 1)
         current = self._to_current(x)
+        # 
         current = current.permute(0, 2, 1)
         spikes = super().forward(current, v_init, return_type)
 
@@ -119,3 +120,50 @@ class ConvNeurons(BaseNeurons):
 
         return spikes
 
+# Trying to make neurons with 
+class SecondOrderPolyNeuron(BaseNeurons):
+    def __init__(self, n_in, n_out, method, t_len, beta_init=[0.9], beta_requires_grad=False, spike_func=FastSigmoid.apply, scale=10, **kwargs):
+        super().__init__(method, t_len, beta_init, beta_requires_grad, spike_func, scale, **kwargs)
+        self._n_in = n_in
+        self._n_out = n_out
+
+        self.fc1 = nn.Linear(n_in, n_out)
+        self.fc2 = nn.Linear(n_in, n_out)
+        self.init_weight(self._to_current.weight, "uniform", a=-np.sqrt(1 / n_in), b=np.sqrt(1 / n_in))
+        self.init_weight(self._to_current.bias, "constant", c=0)
+
+    @property
+    def hyperparams(self):
+        return {**super().hyperparams, "n_in": self._n_in, "n_out": self._n_out}
+
+    # def get_recurrent_current(self, spikes):
+    #     return self._to_recurrent_current(spikes)
+
+    def forward(self, x):
+
+#         # Initialize hidden states at t=0
+#         mem1 = self.lif1.init_leaky()
+#         mem2 = self.lif2.init_leaky()
+
+#         # Record the final layer
+#         spk2_rec = []
+#         mem2_rec = []
+        x = x.permute(0, 2, 1)
+        current = self.fc2(x) * self.fc1(x)
+#         spk1, mem1 = self.lif1(cur1_post, mem1)
+#         cur2 = self.fc3(spk1)
+#         spk2, mem2 = self.lif2(cur2, mem2)
+        #cur2_pre = self.fc3(spk1)
+        #cur2_post = (self.fc4(spk1) + 1) * cur2_pre
+        #spk2, mem2 = self.lif2(cur2_post, mem2)
+#         spk2_rec.append(spk2)
+#         mem2_rec.append(mem2)
+
+#         x = x.permute(0, 2, 1)
+#         current = self._to_current(x)
+#         # 
+        current = current.permute(0, 2, 1)
+        spikes = super().forward(current, v_init, return_type)
+
+        return spikes
+#         return torch.stack(spk2_rec, dim=0), torch.stack(mem2_rec, dim=0)
