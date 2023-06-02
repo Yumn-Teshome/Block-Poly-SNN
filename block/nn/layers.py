@@ -120,7 +120,7 @@ class ConvNeurons(BaseNeurons):
         return spikes
 
 # Beginning of Yumn's edits
-class SecondOrderPolyNeuron(BaseNeurons):
+class PolyNeurons(BaseNeurons):
     def __init__(self, n_in, n_out, method, t_len, beta_init=[0.9], beta_requires_grad=False, spike_func=FastSigmoid.apply, scale=10, **kwargs):
         super().__init__(method, t_len, beta_init, beta_requires_grad, spike_func, scale, **kwargs)
         self._n_in = n_in
