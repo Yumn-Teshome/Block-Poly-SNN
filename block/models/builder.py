@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from brainbox.models import BBModel
 
-from block.nn.layers import LinearNeurons, ConvNeurons
+from block.nn.layers import LinearNeurons, ConvNeurons, PolyNeurons
 import block.nn.methods as methods
 
 
@@ -76,6 +76,16 @@ class LinearModel(BBModel):
         print("building layer..")
         beta_init = LinearModel.build_beta(beta_init, n_out, heterogeneous_beta)
         return LinearNeurons(n_in, n_out, self._method, self._t_len, beta_init, beta_requires_grad, **kwargs)
+
+#Yumn's edits: PolyModel
+class PolyModel(LinearModel):
+    def __init__(self, method, t_len, n_in, n_out, n_hidden, n_layers, skip_connections=False, hidden_beta=0.9, readout_beta=0.9, heterogeneous_beta=False, beta_requires_grad=True, readout_max=True, **kwargs):
+        super.__init__(method, t_len, n_in, n_out, n_hidden, n_layers, skip_connections, hidden_beta, readout_beta, heterogeneous_beta, beta_requires_grad, readout_max, **kwargs)
+    
+    def _build_layer(self, n_in, n_out, beta_init, heterogeneous_beta, beta_requires_grad, **kwargs):
+        print("building layer..")
+        beta_init = PolyModel.build_beta(beta_init, n_out, heterogeneous_beta)
+        return PolyNeurons(n_in, n_out, self._method, self._t_len, beta_init, beta_requires_grad, **kwargs)
 
 
 class ConvModel(BBModel):
