@@ -75,7 +75,6 @@ class LinearNeurons(BaseNeurons):
     def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
         x = x.permute(0, 2, 1)
         current = self._to_current(x)
-        # 
         current = current.permute(0, 2, 1)
         spikes = super().forward(current, v_init, return_type)
 
@@ -120,7 +119,7 @@ class ConvNeurons(BaseNeurons):
 
         return spikes
 
-# Trying to make neurons with 
+# Beginning of Yumn's edits
 class SecondOrderPolyNeuron(BaseNeurons):
     def __init__(self, n_in, n_out, method, t_len, beta_init=[0.9], beta_requires_grad=False, spike_func=FastSigmoid.apply, scale=10, **kwargs):
         super().__init__(method, t_len, beta_init, beta_requires_grad, spike_func, scale, **kwargs)
