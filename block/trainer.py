@@ -101,11 +101,13 @@ class Trainer(trainer.Trainer):
                 epoch_loss += (loss.item() * data.shape[0])
                 n_samples += data.shape[0]
 
-        logging.info(f"Train acc: {n_correct/n_samples}")
+        #logging.info(f"Train acc: {n_correct/n_samples}")
+        print(f"Train acc: {n_correct/n_samples}")
 
         if self._val_dataset is not None and len(self.log["train_loss"]) % 10 == 0:
             scores = trainer.compute_metric(self.model, self._val_dataset, Trainer.accuracy_metric, batch_size=self.batch_size)
-            logging.info(f"Val acc: {np.sum(scores)/len(self._val_dataset)}")
+            #logging.info(f"Val acc: {np.sum(scores)/len(self._val_dataset)}")
+            print(f"Val acc: {np.sum(scores)/len(self._val_dataset)}")
 
         return epoch_loss / n_samples
 
@@ -115,14 +117,16 @@ class Trainer(trainer.Trainer):
 
             epoch_loss = self.log["train_loss"][-1]
             if epoch_loss < self._min_loss:
-                logging.info(f"Saving model...")
+                #logging.info(f"Saving model...")
+                print("Saving model...")
                 self._min_loss = epoch_loss
                 self.save_model()
 
         n_epoch = len(self.log["train_loss"])
 
         if n_epoch == self._milestones[self._milestone_idx]:
-            logging.info(f"Decaying lr...")
+            #logging.info(f"Decaying lr...")
+            print("Decaying lr...")
             self.lr *= self._gamma
             # Load best model
             self.model = Trainer.load_model(self.root, self.id, self.device, self.dtype)
@@ -131,7 +135,8 @@ class Trainer(trainer.Trainer):
             )
 
             if self._milestone_idx != len(self._milestones) - 1:
-                logging.info(f"New milestone target...")
+                #logging.info(f"New milestone target...")
+                print("New milestone target...")
                 self._milestone_idx += 1
 
     def on_training_complete(self, save):
