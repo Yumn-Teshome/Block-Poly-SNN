@@ -147,7 +147,6 @@ class PolyNeurons(BaseNeurons):
     def to(self, device):
         self.fc2.to(device)
         self.fc1.to(device)
-        super.to(device)
 
     def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
 
