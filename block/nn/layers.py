@@ -144,7 +144,7 @@ class PolyNeurons(BaseNeurons):
     def _to_current(self, x):
         return (self.fc2(x)+1) * self.fc1(x)
 
-    def forward(self, x):
+    def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
 
         x = x.permute(0, 2, 1)
         current = self._to_current(x)
