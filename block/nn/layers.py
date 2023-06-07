@@ -143,6 +143,11 @@ class PolyNeurons(BaseNeurons):
     
     def _to_current(self, x):
         return (self.fc2(x)+1) * self.fc1(x)
+    
+    def to(self, device):
+        self.fc2.to(device)
+        self.fc1.to(device)
+        super.to(device)
 
     def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
 
