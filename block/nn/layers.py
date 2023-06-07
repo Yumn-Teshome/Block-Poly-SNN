@@ -140,11 +140,14 @@ class PolyNeurons(BaseNeurons):
 
     # def get_recurrent_current(self, spikes):
     #     return self._to_recurrent_current(spikes)
+    
+    def _to_current(self, x):
+        return (self.fc2(x)+1) * self.fc1(x)
 
     def forward(self, x):
 
         x = x.permute(0, 2, 1)
-        current = (self.fc2(x)+1) * self.fc1(x)
+        current = self._to_current(x)
         current = current.permute(0, 2, 1)
         spikes = super().forward(current, v_init, return_type)
 
