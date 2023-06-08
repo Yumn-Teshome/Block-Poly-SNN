@@ -28,7 +28,7 @@ class Trainer(trainer.Trainer):
             self._test_activity = []
         self._min_loss = np.inf
         self._milestone_idx = 0
-        self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True)
+        self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True) if len(test_dataset) != 0 else torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False)
     
     @staticmethod
     def accuracy_metric(output, target):
