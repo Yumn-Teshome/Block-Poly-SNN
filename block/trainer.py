@@ -145,7 +145,8 @@ class Trainer(trainer.Trainer):
                 test_samples += data.shape[0]
 
         #logging.info(f"Test acc: {test_correct/test_samples}")
-        print(f"Test acc: {test_correct/test_samples}")
+        if test_samples > 0:
+            print(f"Test acc: {test_correct/test_samples}")
 
         if self._val_dataset is not None and len(self.log["train_loss"]) % 10 == 0:
             scores = trainer.compute_metric(self.model, self._val_dataset, Trainer.accuracy_metric, batch_size=self.batch_size)
