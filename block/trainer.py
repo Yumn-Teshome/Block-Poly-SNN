@@ -13,7 +13,7 @@ from block import models, results
 
 class Trainer(trainer.Trainer):
 
-    def __init__(self, root, model, dataset, n_epochs, batch_size, lr, milestones=[-1], gamma=0.1, val_dataset=None, device="cuda", track_activity=False, test_track_activity=False):
+    def __init__(self, root, model, dataset, n_epochs, batch_size, lr, milestones=[-1], gamma=0.1, val_dataset=None, device="cuda", track_activity=False, test_track_activity=False, test_dataset=None):
         super().__init__(root, model, dataset, n_epochs, batch_size, lr, torch.optim.Adam, device=device, loader_kwargs={"shuffle": True, "pin_memory": True,  "num_workers": 16})
         self._milestones = milestones
         self._gamma = gamma
@@ -28,6 +28,7 @@ class Trainer(trainer.Trainer):
             self._test_activity = []
         self._min_loss = np.inf
         self._milestone_idx = 0
+        self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True)
     
     @staticmethod
     def accuracy_metric(output, target):
