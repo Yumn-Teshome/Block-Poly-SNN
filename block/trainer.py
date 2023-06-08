@@ -13,16 +13,19 @@ from block import models, results
 
 class Trainer(trainer.Trainer):
 
-    def __init__(self, root, model, dataset, n_epochs, batch_size, lr, milestones=[-1], gamma=0.1, val_dataset=None, device="cuda", track_activity=False):
+    def __init__(self, root, model, dataset, n_epochs, batch_size, lr, milestones=[-1], gamma=0.1, val_dataset=None, device="cuda", track_activity=False, test_track_activity=False):
         super().__init__(root, model, dataset, n_epochs, batch_size, lr, torch.optim.Adam, device=device, loader_kwargs={"shuffle": True, "pin_memory": True,  "num_workers": 16})
         self._milestones = milestones
         self._gamma = gamma
         self._val_dataset = val_dataset
         self._track_activity = track_activity
+        self._test_track_activity = test_track_activity
 
-        self._times = {"forward_pass": [], "backward_pass": []}
+        self._times = {"forward_pass": [], "backward_pass": [], "test_pass": []}
         if track_activity:
             self._activity = []
+        if test_track_activity:
+            self._test_activity = []
         self._min_loss = np.inf
         self._milestone_idx = 0
     
@@ -38,6 +41,10 @@ class Trainer(trainer.Trainer):
     @property
     def activity_path(self):
         return os.path.join(self.root, self.id, "activity.csv")
+    
+    @property
+    def test_activity_path(self):
+        return os.path.join(self.root, self.id, "test_activity.csv")
 
     def save_model_log(self):
         super().save_model_log()
@@ -50,6 +57,11 @@ class Trainer(trainer.Trainer):
         if self._track_activity:
             activity_df = pd.DataFrame(self._activity)
             activity_df.to_csv(self.activity_path, index=False)
+
+        # Save activity
+        if self._test_track_activity:
+            activity_df = pd.DataFrame(self._test_activity)
+            activity_df.to_csv(self.test_activity_path, index=False)
 
     def loss(self, output, target, model):
         target = target.long()
@@ -103,6 +115,36 @@ class Trainer(trainer.Trainer):
 
         #logging.info(f"Train acc: {n_correct/n_samples}")
         print(f"Train acc: {n_correct/n_samples}")
+        
+        test_correct = 0
+        test_samples = 0
+        for batch_id, (data, target) in enumerate(self.test_data_loader):
+            data = data.to(self.device).type(self.dtype)
+            target = target.to(self.device).type(self.dtype)
+            torch.cuda.synchronize()
+
+            # Forward pass
+            start_time = time.time()
+            if self._test_track_activity:
+                output = self.model(data, return_all=True)
+                activity = results.datasets.ResultsBuilderMetric.spike_count(output, None)
+                self._test_activity.append(activity / data.shape[0])
+                output = output[0]
+            else:
+                output = self.model(data)
+            torch.cuda.synchronize()
+            pass_time = time.time() - start_time
+            self._times["test_pass"].append(pass_time)
+
+            # Compute accuracy
+            _, predictions = torch.max(output, 1)
+            test_correct += (predictions == target).sum().cpu().item()
+            
+            with torch.no_grad():
+                test_samples += data.shape[0]
+
+        #logging.info(f"Test acc: {test_correct/test_samples}")
+        print(f"Test acc: {test_correct/test_samples}")
 
         if self._val_dataset is not None and len(self.log["train_loss"]) % 10 == 0:
             scores = trainer.compute_metric(self.model, self._val_dataset, Trainer.accuracy_metric, batch_size=self.batch_size)
