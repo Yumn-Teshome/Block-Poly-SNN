@@ -27,6 +27,7 @@ class Trainer(trainer.Trainer):
         if test_track_activity:
             self._test_activity = []
         self._min_loss = np.inf
+        self._max_test_acc = -1
         self._milestone_idx = 0
         self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True) if len(test_dataset) != 0 else torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False)
         self.log["test_acc"] = []
@@ -161,11 +162,14 @@ class Trainer(trainer.Trainer):
         if save:
             self.save_model_log()
 
-            epoch_loss = self.log["train_loss"][-1]
-            if epoch_loss < self._min_loss:
+            #epoch_loss = self.log["train_loss"][-1]
+            test_acc = self.log["test_acc"][-1]
+            #if epoch_loss < self._min_loss:
+            if test_acc > self._max_test_acc:
                 #logging.info(f"Saving model...")
                 print("Saving model...")
-                self._min_loss = epoch_loss
+                #self._min_loss = epoch_loss
+                self._max_test_acc = test_acc
                 self.save_model()
 
         n_epoch = len(self.log["train_loss"])
