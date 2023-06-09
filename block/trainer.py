@@ -29,6 +29,7 @@ class Trainer(trainer.Trainer):
         self._min_loss = np.inf
         self._milestone_idx = 0
         self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True) if len(test_dataset) != 0 else torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False)
+        self.log["test_acc"] = []
     
     @staticmethod
     def accuracy_metric(output, target):
@@ -147,6 +148,7 @@ class Trainer(trainer.Trainer):
         #logging.info(f"Test acc: {test_correct/test_samples}")
         if test_samples > 0:
             print(f"Test acc: {test_correct/test_samples}")
+            self.log["test_acc"].append(test_correct/test_samples)
 
         if self._val_dataset is not None and len(self.log["train_loss"]) % 10 == 0:
             scores = trainer.compute_metric(self.model, self._val_dataset, Trainer.accuracy_metric, batch_size=self.batch_size)
