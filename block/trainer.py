@@ -146,7 +146,7 @@ class Trainer(trainer.Trainer):
                 output = self.model(data)
             torch.cuda.synchronize()
             pass_time = time.time() - start_time
-            self.test_times.append(pass_time)
+            self._test_times.append(pass_time)
 
             # Compute accuracy
             _, predictions = torch.max(output, 1)
