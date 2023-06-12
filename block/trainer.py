@@ -63,7 +63,7 @@ class Trainer(trainer.Trainer):
         
         # Save testing times
         test_times_s = pd.Series(self._test_times)
-        test_times_s..to_csv(self.test_times_path, index=False)
+        test_times_s.to_csv(self.test_times_path, index=False)
 
         # Save activity
         if self._track_activity:
