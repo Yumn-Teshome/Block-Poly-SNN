@@ -21,7 +21,8 @@ class Trainer(trainer.Trainer):
         self._track_activity = track_activity
         self._test_track_activity = test_track_activity
 
-        self._times = {"forward_pass": [], "backward_pass": [], "test_pass": []}
+        self._times = {"forward_pass": [], "backward_pass": []}
+        self._test_times = []
         if track_activity:
             self._activity = []
         if test_track_activity:
@@ -42,19 +43,27 @@ class Trainer(trainer.Trainer):
         return os.path.join(self.root, self.id, "times.csv")
 
     @property
+    def test_times_path(self):
+        return os.path.join(self.root, self.id, "test_times.csv")
+
+    @property
     def activity_path(self):
         return os.path.join(self.root, self.id, "activity.csv")
     
     @property
     def test_activity_path(self):
         return os.path.join(self.root, self.id, "test_activity.csv")
-
+    
     def save_model_log(self):
         super().save_model_log()
 
         # Save times
         times_df = pd.DataFrame(self._times)
         times_df.to_csv(self.times_path, index=False)
+        
+        # Save testing times
+        test_times_s = pd.Series(self._test_times)
+        test_times_s..to_csv(self.test_times_path, index=False)
 
         # Save activity
         if self._track_activity:
@@ -137,7 +146,7 @@ class Trainer(trainer.Trainer):
                 output = self.model(data)
             torch.cuda.synchronize()
             pass_time = time.time() - start_time
-            self._times["test_pass"].append(pass_time)
+            self.test_times.append(pass_time)
 
             # Compute accuracy
             _, predictions = torch.max(output, 1)
