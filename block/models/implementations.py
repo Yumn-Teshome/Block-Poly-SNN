@@ -65,6 +65,16 @@ class LinearFMNINSTModel(BaseModel):
     def forward(self, spikes, return_all=False):
         return self._model(spikes, return_all)
 
+#Yumn's edits: PolyFMNISTModel
+class PolyFMNINSTModel(BaseModel):
+
+    def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=False, single_spike=True, n_hidden=1000):
+        super().__init__(method, t_len, heterogeneous_beta, beta_requires_grad, readout_max, single_spike)
+        self._model = PolyModel(method, t_len, n_in=784, n_out=10, n_hidden=n_hidden, n_layers=1, hidden_beta=np.exp(-1/10), readout_beta=np.exp(-1/20), heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, readout_max=readout_max, single_spike=single_spike)
+
+    def forward(self, spikes, return_all=False):
+        return self._model(spikes, return_all)
+
 
 class ConvFMNINSTModel(BaseModel):
 
@@ -86,6 +96,16 @@ class NMNISTModel(BaseModel):
         self._model = LinearModel(method, t_len, n_in=1156, n_out=20, n_hidden=300, n_layers=1, hidden_beta=np.exp(-1/10), readout_beta=np.exp(-1/20), heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, readout_max=readout_max, single_spike=single_spike)
         # Note: Whoops, erroneously did all training with n_out=20 and should have been n_out=10. Will still work with n_out=10, as the additional 10 neurons
         # just become 10 dead readout neurons...
+
+    def forward(self, spikes, return_all=False):
+        return self._model(spikes, return_all)
+
+#Yumn's edits: PolyNMNISTModel
+class PolyNMNISTModel(BaseModel):
+
+    def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=False, single_spike=True, n_hidden=300, n_out=10):
+        super().__init__(method, t_len, heterogeneous_beta, beta_requires_grad, readout_max, single_spike)
+        self._model = PolyModel(method, t_len, n_in=1156, n_out=n_out, n_hidden=n_hidden, n_layers=1, hidden_beta=np.exp(-1/10), readout_beta=np.exp(-1/20), heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, readout_max=readout_max, single_spike=single_spike)
 
     def forward(self, spikes, return_all=False):
         return self._model(spikes, return_all)
