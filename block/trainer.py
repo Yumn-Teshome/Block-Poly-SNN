@@ -32,6 +32,9 @@ class Trainer(trainer.Trainer):
         self._milestone_idx = 0
         self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True) if len(test_dataset) != 0 else torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False)
         self.log["test_acc"] = []
+        if len(test_dataset) != 0:
+            self.log["train_duration"] = []
+            self.log["test_duration"] = []
     
     @staticmethod
     def accuracy_metric(output, target):
@@ -86,6 +89,7 @@ class Trainer(trainer.Trainer):
         n_samples = 0
         n_correct = 0
 
+        train_start = time.time()
         for batch_id, (data, target) in enumerate(self.train_data_loader):
             data = data.to(self.device).type(self.dtype)
             target = target.to(self.device).type(self.dtype)
@@ -127,36 +131,40 @@ class Trainer(trainer.Trainer):
 
         #logging.info(f"Train acc: {n_correct/n_samples}")
         print(f"Train acc: {n_correct/n_samples}")
-        
-        test_correct = 0
-        test_samples = 0
-        for batch_id, (data, target) in enumerate(self.test_data_loader):
-            data = data.to(self.device).type(self.dtype)
-            target = target.to(self.device).type(self.dtype)
-            torch.cuda.synchronize()
-
-            # Forward pass
-            start_time = time.time()
-            if self._test_track_activity:
-                output = self.model(data, return_all=True)
-                activity = results.datasets.ResultsBuilderMetric.spike_count(output, None)
-                self._test_activity.append(activity / data.shape[0])
-                output = output[0]
-            else:
-                output = self.model(data)
-            torch.cuda.synchronize()
-            pass_time = time.time() - start_time
-            self._test_times.append(pass_time)
-
-            # Compute accuracy
-            _, predictions = torch.max(output, 1)
-            test_correct += (predictions == target).sum().cpu().item()
+        if len(test_dataset) != 0:
+            self.log["train_duration"].append(time.time()-train_start)
             
-            with torch.no_grad():
-                test_samples += data.shape[0]
-
-        #logging.info(f"Test acc: {test_correct/test_samples}")
-        if test_samples > 0:
+            test_correct = 0
+            test_samples = 0
+            
+            test_start = time.time()
+            for batch_id, (data, target) in enumerate(self.test_data_loader):
+                data = data.to(self.device).type(self.dtype)
+                target = target.to(self.device).type(self.dtype)
+                torch.cuda.synchronize()
+    
+                # Forward pass
+                start_time = time.time()
+                if self._test_track_activity:
+                    output = self.model(data, return_all=True)
+                    activity = results.datasets.ResultsBuilderMetric.spike_count(output, None)
+                    self._test_activity.append(activity / data.shape[0])
+                    output = output[0]
+                else:
+                    output = self.model(data)
+                torch.cuda.synchronize()
+                pass_time = time.time() - start_time
+                self._test_times.append(pass_time)
+    
+                # Compute accuracy
+                _, predictions = torch.max(output, 1)
+                test_correct += (predictions == target).sum().cpu().item()
+                
+                with torch.no_grad():
+                    test_samples += data.shape[0]
+            
+            self.log["test_duration"].append(time.time()-test_start)
+            #logging.info(f"Test acc: {test_correct/test_samples}")
             print(f"Test acc: {test_correct/test_samples}")
             self.log["test_acc"].append(test_correct/test_samples)
 
