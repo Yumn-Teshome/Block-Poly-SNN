@@ -32,7 +32,8 @@ class Trainer(trainer.Trainer):
         self._milestone_idx = 0
         self.test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=True) if len(test_dataset) != 0 else torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False)
         self.log["test_acc"] = []
-        if len(test_dataset) != 0:
+        self._test = (len(test_dataset) != 0)
+        if self._test:
             self.log["train_duration"] = []
             self.log["test_duration"] = []
     
@@ -131,7 +132,7 @@ class Trainer(trainer.Trainer):
 
         #logging.info(f"Train acc: {n_correct/n_samples}")
         print(f"Train acc: {n_correct/n_samples}")
-        if len(test_data_loader) != 0:
+        if self._test:
             self.log["train_duration"].append(time.time()-train_start)
             
             test_correct = 0
@@ -179,15 +180,20 @@ class Trainer(trainer.Trainer):
         if save:
             self.save_model_log()
 
-            #epoch_loss = self.log["train_loss"][-1]
-            test_acc = self.log["test_acc"][-1]
-            #if epoch_loss < self._min_loss:
-            if test_acc > self._max_test_acc:
-                #logging.info(f"Saving model...")
-                print("Saving model...")
-                #self._min_loss = epoch_loss
-                self._max_test_acc = test_acc
-                self.save_model()
+            if self._test:
+                test_acc = self.log["test_acc"][-1]
+                if test_acc > self._max_test_acc:
+                    #logging.info(f"Saving model...")
+                    print("Saving model...")
+                    self._max_test_acc = test_acc
+                    self.save_model()
+            else:
+                epoch_loss = self.log["train_loss"][-1]
+                if epoch_loss < self._min_loss:
+                    #logging.info(f"Saving model...")
+                    print("Saving model...")
+                    self._min_loss = epoch_loss
+                    self.save_model()
 
         n_epoch = len(self.log["train_loss"])
 
