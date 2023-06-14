@@ -131,7 +131,7 @@ class Trainer(trainer.Trainer):
 
         #logging.info(f"Train acc: {n_correct/n_samples}")
         print(f"Train acc: {n_correct/n_samples}")
-        if len(test_dataset) != 0:
+        if len(test_data_loader) != 0:
             self.log["train_duration"].append(time.time()-train_start)
             
             test_correct = 0
