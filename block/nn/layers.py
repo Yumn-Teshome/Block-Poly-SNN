@@ -156,3 +156,70 @@ class PolyNeurons(BaseNeurons):
         spikes = super().forward(current, v_init, return_type)
 
         return spikes
+
+class PolyConvNeurons(BaseNeurons):
+
+    def __init__(self, n_in, n_out, kernel, stride, method, t_len, beta_init=[0.9], beta_requires_grad=False, spike_func=FastSigmoid.apply, scale=10, **kwargs):
+        super().__init__(method, t_len, beta_init, beta_requires_grad, spike_func, scale, **kwargs)
+        self._n_in = n_in
+        self._n_out = n_out
+        self._kernel = kernel
+        self._stride = stride
+        self._flatten = kwargs.get("flatten", False)
+
+        self._to_current = QuadConv(n_in, n_out, (1, kernel, kernel), (1, stride, stride))
+
+        sc = kwargs.get("sc", 1)
+        if sc is not None:
+            n_in = kernel * kernel * n_in
+            self.init_weight(self._to_current.conv_1.weight, "uniform", a=-sc*np.sqrt(1 / n_in), b=sc*np.sqrt(1 / n_in))
+            self.init_weight(self._to_current.conv_2.weight, "uniform", a=-sc*np.sqrt(1 / n_in), b=sc*np.sqrt(1 / n_in))
+        else:
+            self.init_weight(self._to_current.conv_1.weight, "glorot_normal")
+            self.init_weight(self._to_current.conv_2.weight, "glorot_normal")
+        self.init_weight(self._to_current.conv_1.bias, "constant", c=0)
+        self.init_weight(self._to_current.conv_2.bias, "constant", c=0)
+
+    @property
+    def hyperparams(self):
+        return {**super().hyperparams, "n_in": self._n_in, "n_out": self._n_out, "kernel": self._kernel, "stride": self._stride}
+
+    def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
+        current = self._to_current(x)
+        b, n, t, h, w = current.shape
+
+        current = current.permute(0, 1, 3, 4, 2)
+        current = current.flatten(start_dim=1, end_dim=3)
+        spikes = super().forward(current, v_init, return_type)
+
+        if not self._flatten:
+            spikes = spikes.view(b, n, h, w, t)
+            spikes = spikes.permute(0, 1, 4, 2, 3)
+
+        return spikes
+
+class QuadConv(nn.Module):
+
+    __constants__ = ['in_features', 'out_features']
+    in_features: int
+    out_features: int
+    conv_1: nn.Conv3d
+    conv_2: nn.Conv3d
+
+    def __init__(self, in_features: int, out_features: int,
+                 kernel, stride,
+                 bias_1: bool = True, bias_2: bool = True,
+                 device=None, dtype=None) -> None:
+        factory_kwargs = {'device': device, 'dtype': dtype}
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.conv_1 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride), bias=bias_1)
+        self.conv_2 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride), bias=bias_2)
+
+    def reset_parameters(self) -> None:
+        self.conv_1.reset_parameters()
+        self.conv_2.reset_parameters()
+
+    def forward(self, input: Tensor) -> Tensor:
+        return self.conv_1(input) * (1 + self.conv_2(input))
