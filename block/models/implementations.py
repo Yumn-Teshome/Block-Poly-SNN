@@ -65,7 +65,7 @@ class LinearFMNINSTModel(BaseModel):
     def forward(self, spikes, return_all=False):
         return self._model(spikes, return_all)
 
-#Yumn's edits: PolyFMNISTModel
+#Yumn's edits: PolyFMNISTModel, PolyConvFMNISTModel (farther down)
 class PolyFMNINSTModel(BaseModel):
 
     def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=False, single_spike=True, n_hidden=1000):
@@ -84,6 +84,18 @@ class ConvFMNINSTModel(BaseModel):
     def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=True, single_spike=True):
         super().__init__(method, t_len, heterogeneous_beta, beta_requires_grad, readout_max, single_spike)
         self._model = ConvModel(method, ConvFMNINSTModel._CHANNELS, n_in=1, n_out=10, t_len=t_len, beta_init=1, heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, hidden_neurons=ConvFMNINSTModel._NEURONS, readout_max=readout_max, single_spike=single_spike)
+
+    def forward(self, spikes):
+        return self._model(spikes)
+
+class PolyConvFMNINSTModel(BaseModel):
+
+    _CHANNELS = [32, 64]
+    _NEURONS = [25088, 12544, 3136]
+
+    def __init__(self, method, t_len, heterogeneous_beta=True, beta_requires_grad=True, readout_max=True, single_spike=True):
+        super().__init__(method, t_len, heterogeneous_beta, beta_requires_grad, readout_max, single_spike)
+        self._model = PolyConvModel(method, PolyConvFMNINSTModel._CHANNELS, n_in=1, n_out=10, t_len=t_len, beta_init=1, heterogeneous_beta=heterogeneous_beta, beta_requires_grad=beta_requires_grad, hidden_neurons=PolyConvFMNINSTModel._NEURONS, readout_max=readout_max, single_spike=single_spike)
 
     def forward(self, spikes):
         return self._model(spikes)
