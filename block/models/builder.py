@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from brainbox.models import BBModel
 
-from block.nn.layers import LinearNeurons, ConvNeurons, PolyNeurons, PolvConvNeurons
+from block.nn.layers import LinearNeurons, ConvNeurons, PolyNeurons, PolyConvNeurons
 import block.nn.methods as methods
 
 
