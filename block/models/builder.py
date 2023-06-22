@@ -121,6 +121,39 @@ class ConvModel(BBModel):
 
         return output
 
+class PolyConvModel(BBModel):
+
+    def __init__(self, method, channels, n_in, n_out, t_len, beta_init, heterogeneous_beta, beta_requires_grad, hidden_neurons, readout_max=True, single_spike=True):
+        super().__init__()
+        self._readout_max = readout_max
+
+        self.conv_layers = nn.Sequential(
+            # Block 1
+            nn.ConstantPad3d((2, 2, 2, 2, 0, 0), 0),
+            PolyConvNeurons(n_in, channels[0], 5, 1, method, t_len, PolyModel.build_beta(beta_init, hidden_neurons[0], heterogeneous_beta), beta_requires_grad, single_spike=single_spike),
+            nn.MaxPool3d((1, 2, 2), stride=(1, 2, 2)),
+            # Block 2
+            nn.ConstantPad3d((2, 2, 2, 2, 0, 0), 0),
+            PolyConvNeurons(channels[0], channels[1], 5, 1, method, t_len, PolyModel.build_beta(beta_init, hidden_neurons[1], heterogeneous_beta), beta_requires_grad, single_spike=single_spike),
+            nn.MaxPool3d((1, 2, 2), stride=(1, 2, 2))
+        )
+        n_linear = 1000
+        self.polynomial_layers = nn.Sequential(
+            PolyNeurons(hidden_neurons[-1], n_linear, method, t_len, PolyModel.build_beta(beta_init, n_linear, heterogeneous_beta), beta_requires_grad, single_spike=single_spike),
+        )
+        self.readout_layer = PolyNeurons(n_linear, n_out, method, t_len, PolyModel.build_beta(beta_init, n_out, heterogeneous_beta), beta_requires_grad, single_spike=True, integrator=True)
+
+    def forward(self, spikes):
+        spikes = self.conv_layers(spikes)
+        spikes = spikes.permute(0, 1, 3, 4, 2)
+        spikes = spikes.flatten(start_dim=1, end_dim=3)
+
+        spikes = self.polynomial_layers(spikes)
+        spikes, mem = self.readout_layer(spikes, return_type=methods.RETURN_SPIKES_AND_MEM)
+        output = torch.max(mem, 2)[0] if self._readout_max else torch.sum(mem, 2)
+
+        return output
+
 
 class VGG11Model(BBModel):
 
