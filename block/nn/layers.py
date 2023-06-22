@@ -168,8 +168,8 @@ class PolyConvNeurons(BaseNeurons):
         self._stride = stride
         self._flatten = kwargs.get("flatten", False)
 
-        self.conv_1 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride))
-        self.conv_2 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride))
+        self.conv_1 = nn.Conv3d(n_in, n_out, (1, kernel, kernel), (1, stride, stride))
+        self.conv_2 = nn.Conv3d(n_in, n_out, (1, kernel, kernel), (1, stride, stride))
 
         #self._to_current = QuadConv(n_in, n_out, (1, kernel, kernel), (1, stride, stride))
         self._to_current = lambda x: self.conv_1(x) * (1 + self.conv_2(x))
