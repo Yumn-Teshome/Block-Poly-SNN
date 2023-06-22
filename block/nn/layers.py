@@ -177,13 +177,13 @@ class PolyConvNeurons(BaseNeurons):
         sc = kwargs.get("sc", 1)
         if sc is not None:
             n_in = kernel * kernel * n_in
-            self.init_weight(self._to_current.conv_1.weight, "uniform", a=-sc*np.sqrt(1 / n_in), b=sc*np.sqrt(1 / n_in))
-            self.init_weight(self._to_current.conv_2.weight, "uniform", a=-sc*np.sqrt(1 / n_in), b=sc*np.sqrt(1 / n_in))
+            self.init_weight(self.conv_1.weight, "uniform", a=-sc*np.sqrt(1 / n_in), b=sc*np.sqrt(1 / n_in))
+            self.init_weight(self.conv_2.weight, "uniform", a=-sc*np.sqrt(1 / n_in), b=sc*np.sqrt(1 / n_in))
         else:
-            self.init_weight(self._to_current.conv_1.weight, "glorot_normal")
-            self.init_weight(self._to_current.conv_2.weight, "glorot_normal")
-        self.init_weight(self._to_current.conv_1.bias, "constant", c=0)
-        self.init_weight(self._to_current.conv_2.bias, "constant", c=0)
+            self.init_weight(self.conv_1.weight, "glorot_normal")
+            self.init_weight(self.conv_2.weight, "glorot_normal")
+        self.init_weight(self.conv_1.bias, "constant", c=0)
+        self.init_weight(self.conv_2.bias, "constant", c=0)
 
     @property
     def hyperparams(self):
