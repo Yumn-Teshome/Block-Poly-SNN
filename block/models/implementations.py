@@ -1,7 +1,7 @@
 import numpy as np
 from brainbox.models import BBModel
 
-from block.models.builder import LinearModel, PolyModel, ConvModel, VGG11Model
+from block.models.builder import LinearModel, PolyModel, ConvModel, PolyConvModel, VGG11Model
 
 
 class BaseModel(BBModel):
