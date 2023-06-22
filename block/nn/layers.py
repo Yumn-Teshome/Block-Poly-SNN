@@ -209,14 +209,14 @@ class QuadConv(nn.Module):
 
     def __init__(self, in_features: int, out_features: int,
                  kernel, stride,
-                 bias_1: bool = True, bias_2: bool = True,
+                 #bias_1: bool = True, bias_2: bool = True,
                  device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.conv_1 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride), bias=bias_1)
-        self.conv_2 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride), bias=bias_2)
+        self.conv_1 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride))
+        self.conv_2 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride))
 
     def reset_parameters(self) -> None:
         self.conv_1.reset_parameters()
