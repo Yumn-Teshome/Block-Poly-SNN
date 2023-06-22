@@ -168,7 +168,11 @@ class PolyConvNeurons(BaseNeurons):
         self._stride = stride
         self._flatten = kwargs.get("flatten", False)
 
-        self._to_current = QuadConv(n_in, n_out, (1, kernel, kernel), (1, stride, stride))
+        self.conv_1 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride))
+        self.conv_2 = nn.Conv3d(in_features, out_features, (1, kernel, kernel), (1, stride, stride))
+
+        #self._to_current = QuadConv(n_in, n_out, (1, kernel, kernel), (1, stride, stride))
+        self._to_current = lambda x: self.conv_1(x) * (1 + self.conv_2(x))
 
         sc = kwargs.get("sc", 1)
         if sc is not None:
@@ -199,7 +203,7 @@ class PolyConvNeurons(BaseNeurons):
 
         return spikes
 
-class QuadConv(nn.Module):
+"""class QuadConv(nn.Module):
 
     __constants__ = ['in_features', 'out_features']
     in_features: int
@@ -224,3 +228,4 @@ class QuadConv(nn.Module):
 
     def forward(self, input: Tensor) -> Tensor:
         return self.conv_1(input) * (1 + self.conv_2(input))
+"""
