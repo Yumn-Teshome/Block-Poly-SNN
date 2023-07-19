@@ -143,11 +143,10 @@ class PolyNeurons(BaseNeurons):
     #     return self._to_recurrent_current(spikes)
     
     def _to_current(self, x):
+        # "Polynomial Neural Networks" formulation:
         return (self.fc2(x)+1) * self.fc1(x)
-    
-    """def to(self, device):
-        self.fc2.to(device)
-        self.fc1.to(device)"""
+        # Alternative formulation:
+        # return self.fc1(x) + (self.fc2(x))**2
 
     def forward(self, x, v_init=None, return_type=methods.RETURN_SPIKES):
 
